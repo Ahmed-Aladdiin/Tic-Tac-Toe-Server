@@ -62,3 +62,14 @@ export const joinRoom = async (io, client, { nickname, roomID }) => {
     return;
   }
 };
+// auxiliary functions
+const getSocketIdsInRoom = (roomID, io) => {
+  const room = io.sockets.adapter.rooms.get(roomID);
+  if (room) {
+    // Convert the set of socket IDs to an array
+    const socketIds = Array.from(room);
+    return socketIds;
+  } else {
+    return ["room was not found"];
+  }
+};
