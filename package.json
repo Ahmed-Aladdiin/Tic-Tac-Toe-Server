@@ -1,0 +1,23 @@
+{
+  "name": "tictactoe_server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node ./index.js",
+    "dev": "nodemon -r dotenv/config ./index.js dotenv_config_path=.env"
+  },
+  "type": "module",
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "http": "^0.0.1-security",
+    "mongoose": "^8.6.1",
+    "socket.io": "^4.7.5"
+  }
+}
