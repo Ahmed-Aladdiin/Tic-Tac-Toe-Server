@@ -1,4 +1,8 @@
 import Room from "../models/room.model.js";
+import { checkWinning } from "./game.controllers.js";
+
+const roomPreChars = new Map();
+
 export const createRoom = async (io, client, { nickname }) => {
   const room = new Room();
   const player = {
@@ -62,6 +66,42 @@ export const joinRoom = async (io, client, { nickname, roomID }) => {
     return;
   }
 };
+
+export const tapTile = async (io, { index, char, gameBoard, roomID }) => {
+  // check for multiple taps
+  const preChar = roomPreChars.get(roomID);
+  if (char === preChar) return;
+  roomPreChars.set(roomID, char);
+
+  const room = await Room.findById(roomID);
+  gameBoard[index] = char;
+  const win = checkWinning(gameBoard);
+  io.to(roomID.toString()).emit("edit-tile", { char: char, index: index });
+  const firstPlayer = room.players[0];
+  const secondPlayer = room.players[1];
+
+  if (win) {
+    if (room.currentRound == room.maxRounds) {
+      char == "X" ? firstPlayer.points++ : secondPlayer.points++;
+      const winner =
+        firstPlayer.points > secondPlayer.points ? firstPlayer : secondPlayer;
+      io.to(roomID.toString()).emit("game-end", winner);
+      roomPreChars.delete(roomID);
+    } else {
+      room.currentRound++;
+      const winner = char == "X" ? firstPlayer : secondPlayer;
+      winner.points++;
+      const roomDoc = await room.save();
+      io.to(roomID.toString()).emit("round-win", {
+        roomDoc: roomDoc,
+        winner: winner,
+      });
+    }
+  } else if (!gameBoard.includes("")) {
+    io.to(roomID).emit("tie");
+  }
+};
+
 // auxiliary functions
 const getSocketIdsInRoom = (roomID, io) => {
   const room = io.sockets.adapter.rooms.get(roomID);
